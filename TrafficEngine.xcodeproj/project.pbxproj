@@ -6,6 +6,20 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		20215E6018F5909200262096 /* UniversalLib */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 20215E6118F5909200262096 /* Build configuration list for PBXAggregateTarget "UniversalLib" */;
+			buildPhases = (
+				20215E6418F590DE00262096 /* ShellScript */,
+			);
+			dependencies = (
+			);
+			name = UniversalLib;
+			productName = UniversalLib;
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		20B4D86118F4834C004FCE60 /* CEnginePlugin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20B4D85218F4834C004FCE60 /* CEnginePlugin.cpp */; };
 		20B4D86218F4834C004FCE60 /* CEnginePlugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 20B4D85318F4834C004FCE60 /* CEnginePlugin.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -148,9 +162,26 @@
 			projectRoot = "";
 			targets = (
 				20B4D84818F482FF004FCE60 /* TrafficEngine */,
+				20215E6018F5909200262096 /* UniversalLib */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		20215E6418F590DE00262096 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# define output folder environment variable\nUNIVERSAL_OUTPUTFOLDER=${BUILD_DIR}/${CONFIGURATION}-universal\n\n# Step 1. Build Device and Simulator versions\necho \"Building iphoneos\"\nxcodebuild -target TrafficEngine ONLY_ACTIVE_ARCH=NO -configuration ${CONFIGURATION} -sdk iphoneos  BUILD_DIR=\"${BUILD_DIR}\" BUILD_ROOT=\"${BUILD_ROOT}\"\necho \"Building iphonesimulator\"\nxcodebuild -target TrafficEngine -configuration ${CONFIGURATION} -sdk iphonesimulator BUILD_DIR=\"${BUILD_DIR}\" BUILD_ROOT=\"${BUILD_ROOT}\"\necho \"Building Mac OS X\"\nxcodebuild -target TrafficEngine -configuration ${CONFIGURATION} -sdk macosx -arch x86_64 BUILD_DIR=\"${BUILD_DIR}\" BUILD_ROOT=\"${BUILD_ROOT}\"\n\necho \"Building done!\"\n# make sure the output directory exists\necho \"Creating output folder for universal lib\"\nmkdir -p \"${UNIVERSAL_OUTPUTFOLDER}\"\n\n# Step 2. Create universal binary file using lipo\nlipo -create -output \"${UNIVERSAL_OUTPUTFOLDER}/lib${PROJECT_NAME}.a\" \"${BUILD_DIR}/${CONFIGURATION}-iphoneos/lib${PROJECT_NAME}.a\" \"${BUILD_DIR}/${CONFIGURATION}-iphonesimulator/lib${PROJECT_NAME}.a\"\n\n# Last touch. copy the header files. Just for convenience\ncp -R \"${BUILD_DIR}/${CONFIGURATION}-iphoneos/include\" \"${UNIVERSAL_OUTPUTFOLDER}/\"";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		20B4D84518F482FF004FCE60 /* Sources */ = {
@@ -170,6 +201,20 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		20215E6218F5909200262096 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		20215E6318F5909200262096 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		20B4D84B18F482FF004FCE60 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -203,7 +248,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -246,13 +291,17 @@
 				ARCHS = (
 					i386,
 					"$(ARCHS_STANDARD)",
+					x86_64,
 				);
 				EXECUTABLE_PREFIX = lib;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PUBLIC_HEADERS_FOLDER_PATH = /include;
 				SDKROOT = iphoneos;
+				"SDKROOT[arch=*]" = iphoneos;
 				SUPPORTED_PLATFORMS = macosx;
-				"VALID_ARCHS[sdk=iphonesimulator*]" = "arm64 armv7 armv7s";
+				"VALID_ARCHS[sdk=*]" = "arm64 armv7 armv7s x86_64 i386";
+				"VALID_ARCHS[sdk=iphonesimulator*]" = "arm64 armv7 armv7s x86_64 i386";
 			};
 			name = Debug;
 		};
@@ -262,9 +311,11 @@
 				ARCHS = (
 					i386,
 					"$(ARCHS_STANDARD)",
+					x86_64,
 				);
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PUBLIC_HEADERS_FOLDER_PATH = /include;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = macosx;
 			};
@@ -273,6 +324,14 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		20215E6118F5909200262096 /* Build configuration list for PBXAggregateTarget "UniversalLib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				20215E6218F5909200262096 /* Debug */,
+				20215E6318F5909200262096 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		20B4D84418F482FF004FCE60 /* Build configuration list for PBXProject "TrafficEngine" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -259,7 +259,7 @@ void CEngine::StartNewVehicle(CLane* starterLane)
     vehicle->Position->setX(starterLane->Position->getX());
     vehicle->Position->setY(starterLane->Size->GetHeight());
     
-    Log("Starting new car in lane " + to_string(vehicle->CurrentLane->getID()));
+    Log("Starting new car in lane with id: " + to_string(vehicle->CurrentLane->getID()));
     Log("Starting cordinates x: " + to_string(vehicle->Position->getX()) + " y: " + to_string(vehicle->Position->getY()));
     
     _vehicleArrayLock.lock();
