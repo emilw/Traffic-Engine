@@ -8,7 +8,7 @@
 
 #include "CLane.h"
 
-CLane::CLane(int id, enum Color color, float width, float height, float x)
+CLane::CLane(int id, enum Color color, float width, float height, float x): CFrame()
 {
     _id = id;
     Position = new CPosition(x, 0);

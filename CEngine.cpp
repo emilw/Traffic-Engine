@@ -15,6 +15,8 @@ CEngine::CEngine(void (*printOutFunc) (string), CEnginePlugin* plugin, float scr
     _screenHeight = screenHeight;
     _gameOver = false;
     _enginePlugin = plugin;
+    _lastTimestamp = 0;
+    
 }
 
 CLane* CEngine::GetNewLane(Color color, float x)
@@ -51,6 +53,18 @@ int CEngine::GetNumberOfVehicles()
     return _vehicles.size();
 }
 
+CVehicle* CEngine::GetVehicleForPosition(float x, float y)
+{
+    vector<CVehicle>::iterator it = _vehicles.begin();
+    for(;it != _vehicles.end(); it++)
+    {
+        if(it->IsInFrame(x, y))
+            return &*it;
+    }
+    
+    return nullptr;
+}
+
 CVehicle* CEngine::GetVehicle(int id)
 {
     vector<CVehicle>::iterator it = _vehicles.begin();
@@ -82,10 +96,12 @@ float CEngine::GetUpdatedDeltaTimeInSeconds()
     auto timestampNow = GetTimestamp();
     double deltaTime = 0;
     
-    //Check if it's the first run
-    if(_lastTimestampMilliseconds != 0)
+    //cout << sizeof(_lastTimestamp)<< endl;
+    //cout << __alignof__(_lastTimestamp) << endl;
+    
+    if(_lastTimestamp != 0)
     {
-        deltaTime = timestampNow - _lastTimestampMilliseconds;
+        deltaTime = timestampNow - _lastTimestamp;
     }
     
     //Convert the delta time to seconds
@@ -93,12 +109,13 @@ float CEngine::GetUpdatedDeltaTimeInSeconds()
     
     deltaTimeSecs = deltaTimeSecs/1000.0000000;
     
-    cout << "secs: " << deltaTimeSecs << std::endl;
+    //cout << "secs: " << deltaTimeSecs << std::endl;
     
     //Update the latest time stamp to now, for the next run
-    _lastTimestampMilliseconds = timestampNow;
+    _lastTimestamp = timestampNow;
     
     return deltaTimeSecs;
+    //return 0;
 }
 
 float CEngine::GetTotalTime()
@@ -106,14 +123,16 @@ float CEngine::GetTotalTime()
     return _totalTime;
 }
 
-vector<CVehicle> CEngine::GetAllVehicles()
+void CEngine::Update()
 {
+    if(!IsGameStateOk())
+        return;
     
-    double deltaTime = this->GetUpdatedDeltaTimeInSeconds();
+    double deltaTime = GetUpdatedDeltaTimeInSeconds();
     
     _totalTime = _totalTime + deltaTime;
     
-    printf("delta time: %f \n", deltaTime);
+    //printf("delta time: %f \n", deltaTime);
     
     _remainingTime = _remainingTime - deltaTime;
     
@@ -169,6 +188,7 @@ vector<CVehicle> CEngine::GetAllVehicles()
             
                 if(it->IsCollision(&*otherVehicleIterator))
                 {
+                    Log("Vehicle " + to_string(it->getID()) + " crashed with vehicle " + to_string(otherVehicleIterator->getID()));
                     this->GameOver(GameOverReason::CRASH);
                     break;
                 }
@@ -185,9 +205,6 @@ vector<CVehicle> CEngine::GetAllVehicles()
     {
         this->GameOver(GameOverReason::TIME);
     }
-    
-    
-    return _vehicles;
 }
 
 void CEngine::MoveVehicle(int x, int y, CVehicle *vehicle)
@@ -235,7 +252,7 @@ CPosition* CEngine::GetVehiclesCurrentPosition(CVehicle* vehicle, float deltaTim
             position->setX(position->getX() + (lateralSpeed * deltaTime));
         
         
-        Log("Current lane position x: " + to_string(goalLanePosition->getX()) + ", y: " + to_string(goalLanePosition->getY()));
+        //Log("Current lane position x: " + to_string(goalLanePosition->getX()) + ", y: " + to_string(goalLanePosition->getY()));
     }
 
     
@@ -265,7 +282,7 @@ void CEngine::StartNewVehicle(CLane* starterLane)
     _vehicleArrayLock.lock();
     this->AddVehicle(vehicle);
     
-    _enginePlugin->PostNewVehicle(vehicle);
+    //_enginePlugin->PostNewVehicle(vehicle);
     _vehicleArrayLock.unlock();
 }
 
@@ -356,7 +373,7 @@ void CEngine::CarStarter(CEngine* engine)
     int randomStartIntervall = 0;
     while(true)
     {
-        if(engine->IsGameOver() || engine->IsPaused())
+        if(!engine->IsGameStateOk())
             break;
         
         CLane* lane = engine->GetRandomLane();
@@ -386,7 +403,7 @@ void CEngine::StartGame()
 
 void CEngine::Resume()
 {
-    _lastTimestampMilliseconds = GetTimestamp();
+    _lastTimestamp = GetTimestamp();
     _paused = false;
     _carStarter = new thread(CarStarter, this);
 }
@@ -399,4 +416,19 @@ void CEngine::Pause()
 bool CEngine::IsPaused()
 {
     return _paused;
+}
+
+bool CEngine::IsGameStateOk()
+{
+    if(IsPaused() || IsGameOver())
+    {
+        Log("METHOD COULD NOT BE EXECUTED: The game is in pause mode or in game over mode");
+        return false;
+    }
+    else if(_isInited)
+    {
+        Log("METHOD COULD NOT BE EXECUTED: The game was not inited correctly, make sure that the constructor was called and that the right objects was used");
+        return false;
+    }
+    return true;
 }

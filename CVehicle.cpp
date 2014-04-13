@@ -9,10 +9,11 @@
 #include "CVehicle.h"
 
 
-CVehicle::CVehicle(int newId, enum Color color, float width, float height)
+CVehicle::CVehicle(int newId, enum Color color, float width, float height): CFrame()
 {
     Color = color;
     _id = newId;
+    //Position = new CPosition(0,0);
     
     _speed = 100;
     Size = new CSize(width, height);

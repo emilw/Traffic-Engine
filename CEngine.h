@@ -28,7 +28,7 @@ class CEngine
 public:
     
     CEngine(void (*printOutFunc) (string), CEnginePlugin* enginePlugin, float screenWidth, float screenHeight);
-    CEngine(){};
+    //CEngine(){};
     
     
     //Screen settings
@@ -58,12 +58,13 @@ public:
     //Vehicle methods
     void AddVehicle(CVehicle* vehicle);
     void RemoveVehicle(CVehicle* vehicle);
-    vector<CVehicle> GetAllVehicles();
+    void Update();
     void StartNewVehicle(CLane* starterLane);
     CPosition* GetVehiclesCurrentPosition(CVehicle* vehicle, float deltaTime);
     void MoveVehicle(int x, int y, CVehicle* vehicle);
     int GetNumberOfVehicles();
     CVehicle* GetVehicle(int id);
+    CVehicle* GetVehicleForPosition(float x, float y);
     
     //Thread method
     static void CarStarter(CEngine* engine);
@@ -79,13 +80,14 @@ public:
     void Pause();
     bool IsPaused();
     void Log(string message);
-    
+    bool IsGameStateOk();
 private:
+    bool _isInited = false;
     int _carIdCounter = 0;
     int _laneIdCounter = 0;
     float _remainingTime = 20;
     float _totalTime = 0;
-    long long _lastTimestampMilliseconds = 0;
+    long long _lastTimestamp = 0;
     
     thread* _carStarter;
     
